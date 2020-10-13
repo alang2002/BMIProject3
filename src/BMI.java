@@ -1,21 +1,30 @@
+import java.io.Serializable;
 import java.text.DecimalFormat;
 
-public class BMI implements Comparable<BMI>{
+public class BMI implements Comparable<BMI>, Serializable {
     // This class will serve as an instantiable class that can be used to determine someone's BMI by calculating it
     // The class is set up with all the methods to correctly set up a BMI object (a patient)
 
     // Create private variables to be used in the code
     private int weight, height, option;
-    private String fName, lName;
+    private String fName, lName, fullName, status;
+    private double bmi;
 
     // Default constructor with default values
     // option = 1 for metric
     public BMI() {
-        this.weight = 70;
-        this.height = 170;
-        this.option = 1;
-        this.fName = "Unknown";
-        this.lName = "Unknown";
+//        this.weight = 70;
+//        this.height = 170;
+//        this.option = 1;
+//        this.fName = "Unknown";
+//        this.lName = "Unknown";
+//        this.fullName = "Unknown, Unknown";
+        setWeight(70);
+        setHeight(170);
+        setOption(1);
+        setfName("Unknown");
+        setlName("Unknown");
+        setFullName(fName + ", " + lName);
     }
 
     // overloaded constructor to accept values inputted by program/user
@@ -25,6 +34,19 @@ public class BMI implements Comparable<BMI>{
         setOption(option);
         setfName(fName);
         setlName(lName);
+        setFullName(lName + ", " + fName);
+    }
+
+    // Another overloaded constructor for full patient info
+    public BMI(int weight, int height, int option, String fName, String lName, String status, double bmi) {
+        setWeight(weight);
+        setHeight(height);
+        setOption(option);
+        setfName(fName);
+        setlName(lName);
+        setFullName(lName + ", " + fName);
+        setStatus(status);
+        setBmi(bmi);
     }
 
     // Validation of setters to ensure there is no invalid inputs
@@ -94,6 +116,29 @@ public class BMI implements Comparable<BMI>{
         }
     }
 
+    public String getFullName() {
+        return fullName;
+    }
+
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public double getBmi() {
+        return bmi;
+    }
+
+    public void setBmi(double bmi) {
+        this.bmi = bmi;
+    }
 
     // method to actually calculate BMI
     public double calcBMI() {
@@ -134,15 +179,20 @@ public class BMI implements Comparable<BMI>{
             category = "Obesity";
         }
 
+        // Set bmi and status for patient for complete info
+        setBmi(bmi);
+        setStatus(category);
+
         // Printing out the value
         // Formatting the BMI
         DecimalFormat formatter = new DecimalFormat("#0.00");
-        output = "BMI is " + formatter.format(bmi) + " and it falls under the category " + category;
+        output = "Patient is " + fullName + " and BMI is " + formatter.format(bmi) + " and it falls under the category " + category;
         return output;
     }
 
     @Override
     public int compareTo(BMI o) {
-        return this.lName.compareTo(o.lName);
+        lName = getlName();
+        return lName.compareTo(o.lName);
     }
 }

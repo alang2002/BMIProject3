@@ -1,7 +1,4 @@
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -12,7 +9,7 @@ public class BMIProgram {
     // Aaron Lang
 
     // Static global List to hold BMI objects for persistence
-    private static List<BMI> patientsList = new ArrayList<BMI>();
+    private static ArrayList<BMI> patientsList = new ArrayList<BMI>();
 
     public static void main(String[] args) {
         // De-serializing objects from input file at initialization
@@ -22,11 +19,13 @@ public class BMIProgram {
         ObjectInputStream inStream;
         FileOutputStream outFile;
         ObjectOutputStream outStream;
+
+        // De-serializing
         try
         {
             inFile = new FileInputStream(filename);
             inStream = new ObjectInputStream(inFile);
-            patientsList = (List<BMI>) inStream.readObject();
+            patientsList = (ArrayList<BMI>) inStream.readObject();
 
             inStream.close();
             inFile.close();
@@ -49,7 +48,7 @@ public class BMIProgram {
             System.out.println("Option 1: Metric");
             System.out.println("Option 2: Standard");
             System.out.println("Option 3: Print all patients");
-            System.out.println("Option 4: Exit");
+            System.out.println("Option 4: Exit (Save patients to file)");
             optionSelected = userInput.nextInt();
             if (optionSelected > 4 || optionSelected < 1) {
                 System.out.println("Not a valid input, try again.");
@@ -67,6 +66,21 @@ public class BMIProgram {
         }while (optionSelected != 4);
         System.out.println("Have a nice day! Exiting...");
         userInput.close();
+
+        // Serializing objects to file (persistence)
+        try{
+            outFile = new FileOutputStream(filename);
+            outStream = new ObjectOutputStream(outFile);
+
+            // Writing list to file (updating)
+            outStream.writeObject(patientsList);
+
+            outStream.close();
+            outFile.close();
+        }
+        catch(Exception ex){
+            System.out.println("Error writing patients to file " + ex.getMessage());
+        }
     }
 
     public static void calcMetric() {
@@ -74,6 +88,7 @@ public class BMIProgram {
         String fName, lName, addPatient;
         int weight;
         int height;
+        // Option is not validated or prompted for because option has already been selected through menu.
         int option = 1;
 
         System.out.println("\n--Option 1 Selected: Metric--");
@@ -98,14 +113,16 @@ public class BMIProgram {
         BMI user = new BMI(weight, height, option, fName, lName);
         // Calculating and printing out info
         System.out.println(user.toString());
+        // Using other overloaded constructor to fill out all patient info (for printing out all patients)
+        user = new BMI(weight, height, option, fName, lName, user.getStatus(), user.getBmi());
 
         // Prompt user to add entry to list
         System.out.println("Would you like to add this patient to the file? (Y/N)");
+        userInput.nextLine();
         addPatient = userInput.nextLine();
-        if (addPatient.equals("Y")) {
+        if (addPatient.toUpperCase().equals(("Y"))) {
             patientsList.add(user);
         }
-        userInput.close();
     }
 
     public static void calcStandard() {
@@ -116,10 +133,14 @@ public class BMIProgram {
         int option = 2;
 
         System.out.println("\n--Option 2 Selected: Standard--");
-        System.out.println("Enter patient first name: ");
-        fName = userInput.nextLine();
-        System.out.println("Enter patient last name: ");
-        lName = userInput.nextLine();
+        do {
+            System.out.println("Enter patient first name: ");
+            fName = userInput.nextLine();
+        } while (fName.equals(""));
+        do {
+            System.out.println("Enter patient last name: ");
+            lName = userInput.nextLine();
+        } while (lName.equals(""));
 
         do {
             System.out.println("Enter weight in pounds: ");
@@ -132,13 +153,13 @@ public class BMIProgram {
 
         BMI user = new BMI(weight, height, option, fName, lName);
         System.out.println(user.toString());
+        user = new BMI(weight, height, option, fName, lName, user.getStatus(), user.getBmi());
 
         System.out.println("Would you like to add this patient to the file? (Y/N)");
-        addPatient = userInput.nextLine();
+        addPatient = userInput.next();
         if (addPatient.equals("Y")) {
             patientsList.add(user);
         }
-        userInput.close();
     }
 
     public static void printAll() {
@@ -150,19 +171,43 @@ public class BMIProgram {
         String header5 = "BMI";
         String header6 = "Status";
         // Variables to be used for patient values
-        String fName, lName, fullName, status, type;
+        String fullName, status, type = null;
         double bmi;
-        int height, weight, option;
+        int height, weight;
 
         // Example output:
         //        Name		    Height		Weight	  Type		     BMI	    Status
         //        Doe, John	    70		    170		  Standard       24.2	    Normal
         //        Doe, Jane		170		    70		  Metric		 24.2	    Normal
 
-        System.out.printf("%-10s %10s %10s %10s %10s %10s", header1, header2, header3, header4, header5, header6);
-        System.out.println("\n----------------------------------------------------------------");
+        System.out.printf("%-20s %-15s %-15s %-15s %-15s %-15s", header1, header2, header3, header4, header5, header6);
+        System.out.println("\n--------------------------------------------------------------------------------------------------");
         // Sorted list to be used for printing all patients
         List<BMI> sortedPatientsList = patientsList;
         Collections.sort(sortedPatientsList);
+        for (BMI user : sortedPatientsList) {
+            // Getting all the info and filling them into the variables each time
+            fullName = user.getFullName();
+            status = user.getStatus();
+            if (user.getOption() == 1) {
+                type = "Metric";
+            }
+            else if (user.getOption() == 2) {
+                type = "Standard";
+            }
+            bmi = user.getBmi();
+            height = user.getHeight();
+            weight = user.getWeight();
+
+            // Printing out patient info using left align formatting
+            System.out.printf("%-20s %-15d %-15d %-15s %-15.2f %-15s \n", fullName, height, weight, type, bmi, status);
+        }
+        System.out.println("--------------------------------------------------------------------------------------------------");
+        System.out.println("All patients displayed. Press enter key to return to menu.");
+        try {
+            System.in.read();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
